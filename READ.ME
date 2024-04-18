@@ -1,0 +1,19 @@
+Area of improvement:
+ -Exception handling should be improved by Adding try-catch blocks, specially handle SQL exceptions gracefully and log errors appropriately.
+ -And the Logging can be in selerate class that can be injected to all dependant classes.
+ -Repository, business class should not Write to Console,  it can refactor to have a seperate sevice to handle that. and inject that Service via DI.
+ -Some Hard coded constant can be Shifted to config file , example acceptable start time and acceptable end time, date , time format.
+ -The methods IsTimeReserved and IsTimeWithinBusinessHours are within the Booking manager class. Consider injecting a service to handle these time calculations, which would make testing easier and application more modular.
+ - All the error message can be in Constant File instead of keeping them in classes.
+ -More validation can be added around business rule.
+
+DataBase:
+
+
+CREATE TABLE Appointments (
+    AppointmentID INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL
+);
+
