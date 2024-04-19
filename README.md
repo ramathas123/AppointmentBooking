@@ -1,6 +1,9 @@
 Instruction to RUN:
+
 Open the solution in the visual studio
+
 create following table in master database in you local sql server:
+
 DataBase:
 CREATE TABLE Appointments (
     Id INT PRIMARY KEY IDENTITY,
