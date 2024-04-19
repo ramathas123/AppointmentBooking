@@ -1,4 +1,5 @@
 ﻿using BookingDataAccess;
+using System.Security.Principal;
 
 namespace BookingManager
 {
@@ -10,6 +11,10 @@ namespace BookingManager
         Task<DateTime?> FindFreeTimeSlot(DateTime date);
         bool IsSecondDayOfThirdWeek(DateTime date);
     }
+
+    /// <summary>
+    /// Manager class take care of business logic for Appointment bookings
+    /// </summary>
     public class AppointmentBookingManager: IAppointmentBookingManager
     {
         private readonly IAppointmentRepository _repository;
@@ -19,11 +24,18 @@ namespace BookingManager
             _repository = repository;
         }
 
+        /// <summary>
+        /// Add the appointment 
+        /// </summary>
+        /// <param name="appointmentDate"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <returns></returns>
         public async Task AddAppointment(DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime)
         {
             if (IsTimeWithinBusinessHours(startTime))
             {
-                await _repository.AddAppointment(appointmentDate, startTime, endTime);
+                await _repository.AddAppointment(appointmentDate, startTime, endTime, GetCurrentUserId());
             }
             else
             {
@@ -33,7 +45,7 @@ namespace BookingManager
 
         public async Task DeleteAppointment(DateTime appointmentDate, TimeSpan startTime)
         {
-            await _repository.DeleteAppointment(appointmentDate, startTime);
+            await _repository.DeleteAppointment(appointmentDate, startTime, GetCurrentUserId());
         }
         public async Task KeepTimeSlot(TimeSpan time)
         {
@@ -47,7 +59,7 @@ namespace BookingManager
                     DateTime potentialStartTime = date + time;
                     if (await _repository.IsSlotAvailable(potentialStartTime))
                     {
-                        await _repository.AddAppointment(date, time, time.Add(TimeSpan.FromMinutes(30)));
+                        await _repository.AddAppointment(date, time, time.Add(TimeSpan.FromMinutes(30)), GetCurrentUserId());
                         Console.WriteLine($"Time slot kept: {potentialStartTime}");
                         slotKept = true;
                     }
@@ -55,6 +67,12 @@ namespace BookingManager
                 date = date.AddDays(1);  // Move to the next day
             }
         }
+
+        /// <summary>
+        /// Get the first Freeslot on given date
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
         public async Task<DateTime?> FindFreeTimeSlot(DateTime date)
         {
             var startTime = new TimeSpan(9, 0, 0); // Start of work day
@@ -75,11 +93,22 @@ namespace BookingManager
             return null; // No available slot found
         }
 
+        /// <summary>
+        /// Check if particular slot is reserved
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
         private bool IsTimeReserved(DateTime date, TimeSpan time)
         {
             return time.Hours == 16 && IsSecondDayOfThirdWeek(date);
         }
 
+        /// <summary>
+        /// Logic to check if particular date is second day of the third week in that month
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
         public bool IsSecondDayOfThirdWeek(DateTime date)
         {
             var firstOfMonth = new DateTime(date.Year, date.Month, 1);
@@ -96,6 +125,12 @@ namespace BookingManager
 
             // Check if the time is between 9 AM and 5 PM
             return (timeToCheck >= startTime && timeToCheck <= endTime);
+        }
+
+        private static string GetCurrentUserId()
+        {
+            var identity = WindowsIdentity.GetCurrent();
+            return identity.Name; // Returns the Windows login name, e.g., DOMAIN\Username
         }
     }
 }
