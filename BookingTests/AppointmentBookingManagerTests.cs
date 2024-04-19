@@ -52,14 +52,14 @@ namespace BookingTests
             var startTime = new TimeSpan(10, 0, 0); // 10 AM
             var endTime = startTime.Add(TimeSpan.FromMinutes(30)); // 10:30 AM
 
-            _mockRepository.Setup(repo => repo.AddAppointment(date, startTime, endTime))
+            _mockRepository.Setup(repo => repo.AddAppointment(date, startTime, endTime, It.IsAny<string>()))
                            .Returns(Task.CompletedTask);
 
             // Act
             await _manager.AddAppointment(date, startTime, endTime);
 
             // Assert
-            _mockRepository.Verify(repo => repo.AddAppointment(date, startTime, endTime), Times.Once);
+            _mockRepository.Verify(repo => repo.AddAppointment(date, startTime, endTime, It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace BookingTests
              await _manager.AddAppointment(date, startTime, endTime);
 
             // Assert
-            _mockRepository.Verify(repo => repo.AddAppointment(It.IsAny<DateTime>(), It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()), Times.Never);
+            _mockRepository.Verify(repo => repo.AddAppointment(It.IsAny<DateTime>(), It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>(), It.IsAny<string>()), Times.Never);
         }
     }
 }
